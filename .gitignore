@@ -15,4 +15,5 @@ package-lock.json
 
 config.cfg
 
+migrations
 __pycache__
