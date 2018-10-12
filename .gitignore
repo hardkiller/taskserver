@@ -13,4 +13,6 @@ public/css/app.css.map
 public/css/images/
 package-lock.json
 
+config.cfg
+
 __pycache__
