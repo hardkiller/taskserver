@@ -12,6 +12,7 @@
 # apt install default-libmysqlclient-dev
 # apt-get install python3-dev
 
+# необходимые переменные окружения
 export FLASK_APP=server.py
 
 # обновляем сам пакетный менеджер
@@ -29,3 +30,4 @@ export FLASK_APP=server.py
 
 ./venv/bin/pip install mysqlclient
 
+./venv/bin/pip install Flask-Mail
