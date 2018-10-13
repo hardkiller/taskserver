@@ -31,3 +31,5 @@ export FLASK_APP=server.py
 ./venv/bin/pip install mysqlclient
 
 ./venv/bin/pip install Flask-Mail
+
+./venv/bin/pip install jsonschema
