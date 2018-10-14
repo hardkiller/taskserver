@@ -5,6 +5,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_mail import Mail, Message
 
 import os
+import re
 import tasks
 import multiprocessing
 
@@ -37,11 +38,32 @@ def root():
     return render_template('index.html', message=message)
 
 
-@app.route("/mail")
-def mail_report():
-    subject = "test sending mail with default sender"
-    body = "Default sender qwe. Hello Flask message sent from Flask-Mail"
-    recipients = ["any.default.receiver@gmail.com"]
+def validate_mail(email):
+
+    if not email:
+        return False
+
+    if len(email) < 7:
+        return False
+
+    return re.match(r"[^@]+@[^@]+\.[^@]+", email)
+
+
+def send_result_to_mail(email, result):
+
+    if email is None or len(email) < 7:
+        return
+
+    subject = "Результаты выполнения задачи"
+    body = "Пустой ответ"
+
+    if result is not None:
+        if result.get("status") == "ERROR":
+            body = result.get("error_msg")
+        else:
+            body = result.get("result")
+
+    recipients = [email]
 
     msg = Message(subject=subject, body=body, recipients=recipients)
 
@@ -49,13 +71,14 @@ def mail_report():
         msg.attach("config.cfg.example", "text/plain", fp.read())
 
     mail.send(msg)
-    return "Тестовое сообщение отправлено"
+    return
 
 
 def task_worker(params, send_end):
 
     task_name = params.get('task_name')
     task_params = params.get('params')
+    email = params.get('email')
 
     try:
         parameters = json.loads(task_params)
@@ -71,6 +94,10 @@ def task_worker(params, send_end):
         }
 
     finally:
+
+        if email is not None and len(email) > 7:
+            send_result_to_mail(email, result)
+
         send_end.send(result)
 
 
@@ -80,9 +107,19 @@ def run_task():
     data = json.loads(request.data)
     email = data.get('email')
 
+    if email is not None and len(email) > 0 and not validate_mail(email):
+
+        result = {
+            "status": "ERROR",
+            "error_code": 101,
+            "error_msg": "указан некорректный почтовый ящик %s" % email
+        }
+        return jsonify(result)
+
     thread_params = {
-         "params": data.get('params'),
-         "task_name": data.get('task_name')
+        "params": data.get('params'),
+        "task_name": data.get('task_name'),
+        "email": email
     }
 
     recv_end, send_end = multiprocessing.Pipe(False)
@@ -93,8 +130,9 @@ def run_task():
     )
     p.start()
 
-    if email is not None:
-         print("we can send mail to %s" % email)
+    if email is not None and len(email) > 0:
+        result = {"status": "OK"}
+        return jsonify(result)
 
     result = recv_end.recv()
 

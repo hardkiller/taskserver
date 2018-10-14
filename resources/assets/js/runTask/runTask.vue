@@ -94,6 +94,15 @@
     },
     methods: {
       runTask() {
+
+        if (this.email && this.email.length >0) {
+          var re = /\S+@\S+\.\S+/;
+          if (!re.test(this.email)) {
+            alert("Введите корректный email");
+            return;
+          }
+        }
+
         let params = {
           task_name: this.task_name,
           params: this.params,
@@ -105,22 +114,30 @@
           .post("/run_task", params)
           .then(response => {
 
+          this.result = '';
+          this.error = '';
+
           if (!response || !response.data) {
 
             this.error = 'Ошибка получения данных с сервера';
-            this.result = '';
             return;
           }
 
           if (response.data.status
               && response.data.status == 'ERROR') {
-            this.result = '';
+
             this.error = response.data.error_msg;
             return;
           }
 
-          this.result = response.data.result;
-          this.error = '';
+          if (response.data.status
+              && response.data.status == 'OK') {
+
+            this.result = response.data.status;
+          } else {
+
+            this.result = response.data.result;
+          }
 
           }).catch(error => {
 
