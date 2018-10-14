@@ -41,6 +41,19 @@ def validate_parameters(json_schema, parameters):
     return validate(parameters, json_schema)
 
 
+def get_worker_data(worker):
+    return {
+        "json_schema": worker.json_schema,
+        "name": worker.name
+    }
+
+
+def get_workers_list():
+
+    members = [ obj for name, obj in inspect.getmembers(sys.modules['__main__'])]
+    return [get_worker_data(m) for m in members if hasattr(m, 'task_runner')]
+
+
 def run(task_name, parameters):
 
     runner = get_task_runner(task_name)

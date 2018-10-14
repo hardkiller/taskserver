@@ -8,11 +8,13 @@ import os
 import re
 import tasks
 import multiprocessing
+import datetime
 
 from my_tasks import Multiply, multi_print
 
 
 static_file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'public')
+
 
 app = Flask(__name__, template_folder='template')
 
@@ -27,9 +29,15 @@ manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
 
-class User(db.Model):
+class TaskResult(db.Model):
+    __tablename__ = 'task_results'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128))
+    task_name = db.Column(db.String(255))
+    start_datetime = db.Column(db.DateTime)
+    end_datetime = db.Column(db.DateTime)
+    parameters = db.Column(db.Text)
+    email = db.Column(db.String(255))
+    result = db.Column(db.Text)
 
 
 @app.route('/')
@@ -47,6 +55,31 @@ def validate_mail(email):
         return False
 
     return re.match(r"[^@]+@[^@]+\.[^@]+", email)
+
+
+def create_task(task_params):
+
+    task_result = TaskResult()
+    task_result.start_datetime = datetime.datetime.utcnow()
+    task_result.end_datetime = None
+    task_result.task_name = task_params.get("task_name")
+    task_result.parameters = task_params.get("params")
+    task_result.email = task_params.get("email")
+    task_result.result = None
+
+    db.session.add(task_result)
+    db.session.commit()
+
+    return task_result
+
+
+def update_task_results(task_id, result):
+
+    task_result = db.session.query(TaskResult).get(task_id)
+    task_result.end_datetime = datetime.datetime.utcnow()
+    task_result.result = result
+    db.session.add(task_result)
+    db.session.commit()
 
 
 def send_result_to_mail(email, result):
@@ -80,10 +113,31 @@ def task_worker(params, send_end):
     task_params = params.get('params')
     email = params.get('email')
 
+    task_object = None
+
+    try:
+        task_object = create_task(params)
+
+    except Exception as error:
+
+        result = {
+            "status": "ERROR",
+            "error_code": 102,
+            "error_msg": "Ошибка записи задачи в базу: " + str(error)
+        }
+        send_end.send(result)
+        return
+
+    finally:
+        print("Created resultTask entity with id %s" % task_object.id)
+
     try:
         parameters = json.loads(task_params)
         result_value = tasks.run(task_name, parameters)
         result = {"result": result_value}
+
+        if task_object is not None and task_object.id is not None:
+            update_task_results(task_object.id, result_value)
 
     except Exception as error:
 
@@ -100,6 +154,28 @@ def task_worker(params, send_end):
 
         send_end.send(result)
 
+
+def serialize_task(task_obj):
+    return {
+        "id": task_obj.id,
+        "start_datetime": task_obj.start_datetime,
+        "end_datetime": task_obj.end_datetime,
+        "task_name": task_obj.task_name,
+        "parameters": task_obj.parameters,
+        "result": task_obj.result
+    }
+
+
+@app.route("/tasks_list", methods=['GET'])
+def tasks_list():
+
+    task_items = TaskResult.query.all()
+    return jsonify([(serialize_task(row)) for row in task_items])
+
+@app.route("/get_task_workers", methods=['GET'])
+def get_task_workers():
+    task_workers = tasks.get_workers_list()
+    return jsonify(task_workers)
 
 @app.route("/run_task", methods=['POST'])
 def run_task():
