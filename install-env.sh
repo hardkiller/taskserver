@@ -6,9 +6,7 @@ virtualenv ./venv
 ./venv/bin/activate
 
 
-# required to install mysql client dev library
-# apt-get install libmariadbclient-dev
-# apt-get install python-dev
+# Под Debian необходимо поставить библиотеки
 # apt install default-libmysqlclient-dev
 # apt-get install python3-dev
 

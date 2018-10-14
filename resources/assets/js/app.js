@@ -5,9 +5,7 @@ import VueRouter from 'vue-router'
 require('./bootstrap');
 
 const mainWindow = require("./mainWindow/mainWindow.vue");
-
 const workersWindow = require("./workersWindow/workersWindow.vue");
-
 const runTask = require("./runTask/runTask.vue");
 
 const routes = [

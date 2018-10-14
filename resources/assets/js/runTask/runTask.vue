@@ -85,8 +85,8 @@
   export default {
     data() {
       return {
-        task_name: 'multiprint',
-        params: '{"msg": "hello", "count": 3}',
+        task_name: '',
+        params: '',
         email: '',
         result: '',
         error: ''

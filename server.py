@@ -42,11 +42,7 @@ class TaskResult(db.Model):
 
 @app.route('/')
 def root():
-#    path = os.path.join(path, 'index.html')
     return send_from_directory(static_file_dir, 'index.html')
-
-#    message = "Hello, World"
-#    return render_template('index.html', message=message)
 
 
 def validate_mail(email):
@@ -175,10 +171,12 @@ def tasks_list():
     task_items = TaskResult.query.all()
     return jsonify([(serialize_task(row)) for row in task_items])
 
+
 @app.route("/get_task_workers", methods=['GET'])
 def get_task_workers():
     task_workers = tasks.get_workers_list()
     return jsonify(task_workers)
+
 
 @app.route("/run_task", methods=['POST'])
 def run_task():
