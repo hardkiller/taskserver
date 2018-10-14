@@ -18,3 +18,8 @@
 - Устанавливаем модули: npm install
 - Компилим фронтенд: npm run production
 - Или запускаем вотчер: npm run watch
+
+#####  Запуск
+- Из консоли: bash ./run_cli.sh
+- Через web: bash ./run.sh
+- Открываем в браузере http://127.0.0.1:5000

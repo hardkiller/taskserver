@@ -6,13 +6,20 @@ require('./bootstrap');
 
 const mainWindow = require("./mainWindow/mainWindow.vue");
 
-const runTask = require("./runTask/runTask.vue")
+const workersWindow = require("./workersWindow/workersWindow.vue");
+
+const runTask = require("./runTask/runTask.vue");
 
 const routes = [
   {
     path: '/',
     name: 'root',
     component: mainWindow
+  },
+  {
+    path: '/workers',
+    name: 'workersWindow',
+    component: workersWindow
   },
   {
     path: '/run_task',

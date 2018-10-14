@@ -51,7 +51,7 @@ def get_worker_data(worker):
 def get_workers_list():
 
     members = [ obj for name, obj in inspect.getmembers(sys.modules['__main__'])]
-    return [get_worker_data(m) for m in members if hasattr(m, 'task_runner')]
+    return [get_worker_data(m) for m in members if hasattr(m, 'task_runner') and m.task_runner is True]
 
 
 def run(task_name, parameters):

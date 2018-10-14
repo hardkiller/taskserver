@@ -42,8 +42,11 @@ class TaskResult(db.Model):
 
 @app.route('/')
 def root():
-    message = "Hello, World"
-    return render_template('index.html', message=message)
+#    path = os.path.join(path, 'index.html')
+    return send_from_directory(static_file_dir, 'index.html')
+
+#    message = "Hello, World"
+#    return render_template('index.html', message=message)
 
 
 def validate_mail(email):
