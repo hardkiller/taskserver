@@ -55,7 +55,7 @@
 
       <div
         v-if="error && error.length"
-        class="alert alert-danger">
+        class="error-block alert alert-danger">
 
           {{ error }}
       </div>
@@ -85,8 +85,8 @@
   export default {
     data() {
       return {
-        task_name: '',
-        params: '',
+        task_name: 'multiprint',
+        params: '{"msg": "hello", "count": 3}',
         email: '',
         result: '',
         error: ''
@@ -100,9 +100,10 @@
           email: this.email
         };
 
-        axios
-        .post("/run_task", params)
-        .then(response => {
+        try {
+          axios
+          .post("/run_task", params)
+          .then(response => {
 
           if (!response || !response.data) {
 
@@ -111,20 +112,26 @@
             return;
           }
 
-          if (response.data.error) {
+          if (response.data.status
+              && response.data.status == 'ERROR') {
             this.result = '';
-            this.error = response.data.error.error_msg;
+            this.error = response.data.error_msg;
             return;
           }
 
           this.result = response.data.result;
           this.error = '';
 
-        }).catch(error => {
+          }).catch(error => {
 
+            this.result = '';
+            this.error = 'Ошибка получения данных с сервера';
+          });
+
+        } catch(e) {
           this.result = '';
-          this.error = error;
-        });
+          this.error = 'Ошибка получения данных с сервера';
+        }
       }
     },
     components: {}

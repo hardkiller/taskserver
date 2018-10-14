@@ -1,16 +1,15 @@
-from flask import Flask, render_template, send_from_directory, request
-
+from flask import Flask,jsonify, json, render_template, send_from_directory, request
 from flask_script import Manager
-
 from flask_sqlalchemy import SQLAlchemy
-
 from flask_migrate import Migrate, MigrateCommand
-
 from flask_mail import Mail, Message
 
-from flask import jsonify, json
-
 import os
+import tasks
+import multiprocessing
+
+from my_tasks import Multiply, multi_print
+
 
 static_file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'public')
 
@@ -53,24 +52,51 @@ def mail_report():
     return "Тестовое сообщение отправлено"
 
 
+def task_worker(params, send_end):
+
+    task_name = params.get('task_name')
+    task_params = params.get('params')
+
+    try:
+        parameters = json.loads(task_params)
+        result_value = tasks.run(task_name, parameters)
+        result = {"result": result_value}
+
+    except Exception as error:
+
+        result = {
+            "status": "ERROR",
+            "error_code": 100,
+            "error_msg": "Ошибка выполнения задачи: " + str(error)
+        }
+
+    finally:
+        send_end.send(result)
+
+
 @app.route("/run_task", methods=['POST'])
 def run_task():
 
     data = json.loads(request.data)
-
-    task_name = data.get('task_name')
-    params = data.get('params')
     email = data.get('email')
 
-    print("task_name", task_name)
-    print("params", params)
-    print("email", email)
+    thread_params = {
+         "params": data.get('params'),
+         "task_name": data.get('task_name')
+    }
 
-    # sample error data
-    # result = {"result": "test", "error": {"error_msg": "сообщение об ошибке"}}
+    recv_end, send_end = multiprocessing.Pipe(False)
 
-    # sample success data
-    result = {"result": "test"}
+    p = multiprocessing.Process(
+        target=task_worker,
+        args=(thread_params, send_end)
+    )
+    p.start()
+
+    if email is not None:
+         print("we can send mail to %s" % email)
+
+    result = recv_end.recv()
 
     return jsonify(result)
 

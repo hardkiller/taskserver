@@ -46,24 +46,30 @@ def run(task_name, parameters):
     runner = get_task_runner(task_name)
 
     if runner is None:
-        print("task runner %s not found" % task_name)
+        error = 'Не найден исполнитель задачи с указанным именем %s' % task_name
+        raise Exception(error)
         return None
 
     if not hasattr(runner, 'json_schema'):
-        print("task runner %s does not have json schema" % task_name)
+        error = 'Указанный исполнитель задачи %s не содержит схемы валидации' % task_name
+        raise Exception(error)
         return None
 
     json_schema = runner.json_schema
+    print("JSON SCHEMA", json_schema)
 
-    validate_parameters(json_schema, parameters)
+    try:
+        print("VALIDATE", parameters)
+        validate_parameters(json_schema, parameters)
+    except Exception:
+        error = "Ошибка валидации схемы данных"
+        raise Exception(error)
 
     if inspect.isclass(runner):
         task_object = runner()
         return task_object.run(**parameters)
     else:
         return runner(parameters)
-
-    return None
 
 
 def run_cli():
