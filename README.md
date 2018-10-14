@@ -2,6 +2,14 @@
 
 ### Инструкция по установке
 
+##### Для запуска под Linux
+
+Необходимо установить клиенты mysql, а так-же dev пакет для python
+
+- apt install default-libmysqlclient-dev
+- apt install python3-dev
+
+
 ##### Бэкенд
 
 

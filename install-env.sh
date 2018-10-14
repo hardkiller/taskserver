@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# rm -rf ./venv
-# mkdir ./venv
-# virtualenv ./venv
-# ./venv/bin/activate
+rm -rf ./venv
+mkdir ./venv
+virtualenv ./venv
+./venv/bin/activate
 
 
 # required to install mysql client dev library
