@@ -2,7 +2,6 @@
   "name": "taskserver",
   "version": "0.0.1",
   "description": "taskserver",
-  "main": "nodePointServer.js",
   "scripts": {
     "production": "gulp --production",
     "watch": "gulp watch"
